@@ -20,8 +20,15 @@ export function Header({
     if (hour < 18) return 'Boa tarde';
     return 'Boa noite';
   };
-  return <header className="flex-col mb-6 sm:mb-8 sm:flex-row flex sm:items-end justify-between gap-[8px]">
-      
+  return <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+          {getGreeting()}, {profile?.name?.split(' ')[0] || 'Artista'}! ✨
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {profile?.studio_name || 'Seu estúdio de tatuagem'}
+        </p>
+      </div>
 
       <div className="flex items-center gap-3">
         {showSearch && <div className="relative hidden sm:block">
