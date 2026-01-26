@@ -28,16 +28,17 @@ export function useLowStockMaterials() {
   return useQuery({
     queryKey: ['materials', 'low-stock', user?.id],
     queryFn: async () => {
+      // Fetch all materials and filter in JavaScript since Supabase
+      // doesn't support comparing two columns directly in a filter
       const { data, error } = await supabase
         .from('materials')
         .select('*')
-        .filter('qty_current', 'lte', 'min_qty')
         .order('qty_current', { ascending: true });
 
       if (error) throw error;
       
-      // Filter in JavaScript since we can't directly compare columns
-      return (data as Material[]).filter(m => m.qty_current <= m.min_qty);
+      // Filter materials where qty_current <= min_qty
+      return (data as Material[]).filter(m => (m.qty_current ?? 0) <= (m.min_qty ?? 0));
     },
     enabled: !!user
   });
