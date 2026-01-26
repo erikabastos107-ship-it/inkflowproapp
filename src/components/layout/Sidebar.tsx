@@ -48,7 +48,7 @@ export function Sidebar() {
       <div className="p-4 sm:p-6">
         <div className="flex items-center gap-3">
           
-          <span className="text-xl font-bold lg:hidden xl:inline text-primary">Inkflow</span>
+          <span className="text-xl font-bold lg:hidden xl:inline text-primary">Inkflow PRO </span>
         </div>
       </div>
 
