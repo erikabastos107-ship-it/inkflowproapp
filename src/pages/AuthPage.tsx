@@ -78,7 +78,7 @@ export default function AuthPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           
-          <h1 className="text-2xl font-bold text-primary">InkFlow </h1>
+          <h1 className="text-2xl font-bold text-primary">InkFlow PRO </h1>
           <p className="text-muted-foreground mt-2">
             {isLogin ? 'Acesse sua conta' : 'Crie sua conta'}
           </p>
