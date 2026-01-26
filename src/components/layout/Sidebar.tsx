@@ -95,25 +95,7 @@ export function Sidebar() {
 
       {/* Mobile header with menu */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar/95 backdrop-blur-xl border-b border-sidebar-border">
-        <div className="flex items-center justify-between px-4 h-16">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-lg font-bold text-primary-foreground">I</span>
-            </div>
-            <span className="text-lg font-bold text-foreground">Inkflow</span>
-          </div>
-
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-foreground">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0 bg-sidebar border-sidebar-border">
-              <NavContent />
-            </SheetContent>
-          </Sheet>
-        </div>
+        
       </div>
 
       {/* Mobile bottom nav */}
