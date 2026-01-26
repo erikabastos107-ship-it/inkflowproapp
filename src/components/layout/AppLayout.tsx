@@ -25,7 +25,7 @@ export function AppLayout() {
         <Sidebar />
         <main className="flex-1 lg:ml-0 overflow-auto">
           <div className="pt-20 lg:pt-0 pb-24 lg:pb-8 px-4 sm:px-6 lg:px-8 min-h-screen py-[16px]">
-            <div className="max-w-7xl mx-auto py-6 sm:py-[24px]">
+            <div className="max-w-7xl mx-auto sm:py-[24px] py-0">
               <Outlet />
             </div>
           </div>
