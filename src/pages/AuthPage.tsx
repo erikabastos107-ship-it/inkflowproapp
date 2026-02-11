@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { LoadingScreen } from '@/components/ui/loading';
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Mínimo 6 caracteres')
@@ -26,12 +27,33 @@ type SignupForm = z.infer<typeof signupSchema>;
 export default function AuthPage() {
   const navigate = useNavigate();
   const {
+    user,
+    profile,
+    loading: authLoading,
     signIn,
     signUp
   } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (profile && !profile.onboarding_done) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/app/dashboard', { replace: true });
+      }
+    }
+  }, [user, profile, navigate]);
+
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (user) {
+    return <LoadingScreen />;
+  }
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema)
   });
