@@ -36,6 +36,12 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const loginForm = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema)
+  });
+  const signupForm = useForm<SignupForm>({
+    resolver: zodResolver(signupSchema)
+  });
 
   useEffect(() => {
     if (user) {
@@ -47,19 +53,9 @@ export default function AuthPage() {
     }
   }, [user, profile, navigate]);
 
-  if (authLoading) {
+  if (authLoading || user) {
     return <LoadingScreen />;
   }
-
-  if (user) {
-    return <LoadingScreen />;
-  }
-  const loginForm = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema)
-  });
-  const signupForm = useForm<SignupForm>({
-    resolver: zodResolver(signupSchema)
-  });
   const handleLogin = async (data: LoginForm) => {
     setLoading(true);
     const {
