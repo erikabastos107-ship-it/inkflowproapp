@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import logoImg from '@/assets/logo.png';
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Mínimo 6 caracteres')
@@ -98,8 +99,7 @@ export default function AuthPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          
-          <h1 className="text-2xl font-bold text-success-foreground">InkFlow</h1>
+          <img src={logoImg} alt="InkFlow" className="h-12 w-auto object-contain mx-auto mb-3" />
           <p className="text-muted-foreground mt-2">
             {isLogin ? 'Acesse sua conta' : 'Crie sua conta'}
           </p>

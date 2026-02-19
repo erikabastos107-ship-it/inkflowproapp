@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import logoImg from '@/assets/logo.png';
 const navItems = [{
   path: '/app/dashboard',
   icon: LayoutDashboard,
@@ -47,8 +48,8 @@ export function Sidebar() {
       {/* Logo */}
       <div className="p-4 sm:p-6">
         <div className="flex items-center gap-3">
-          
-          <span className="text-xl font-bold lg:hidden xl:inline text-primary">Inkflow PRO </span>
+          <img src={logoImg} alt="InkFlow" className="h-8 w-auto object-contain" />
+          <span className="text-xl font-bold lg:hidden xl:inline text-primary">Inkflow PRO</span>
         </div>
       </div>
 
