@@ -29,22 +29,18 @@ Deno.serve(async (req) => {
     if (existingDemo) {
       userId = existingDemo.id;
     } else {
-      // Create demo user
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: DEMO_EMAIL,
         password: DEMO_PASSWORD,
         email_confirm: true,
         user_metadata: { name: 'Artista Demo' }
       });
-
       if (createError) throw createError;
       userId = newUser.user!.id;
-
-      // Wait a bit for the trigger to create profile
       await new Promise(r => setTimeout(r, 500));
     }
 
-    // Update profile with demo data
+    // Update profile
     await supabaseAdmin.from('profiles').upsert({
       user_id: userId,
       name: 'Artista Demo',
@@ -55,7 +51,7 @@ Deno.serve(async (req) => {
       currency: 'BRL',
     }, { onConflict: 'user_id' });
 
-    // Clean up old demo data first
+    // Clean up old demo data
     await supabaseAdmin.from('appointments').delete().eq('user_id', userId);
     await supabaseAdmin.from('clients').delete().eq('user_id', userId);
     await supabaseAdmin.from('materials').delete().eq('user_id', userId);
@@ -68,86 +64,88 @@ Deno.serve(async (req) => {
       { user_id: userId, name: 'Carla Mendes', phone: '(11) 97654-3210', email: 'carla@email.com', instagram: '@carlam', skin_tone: 'Escuro', notes: 'Quer cobrir cicatriz no braço esquerdo.' },
       { user_id: userId, name: 'Diego Rocha', phone: '(11) 96543-2109', email: 'diego@email.com', instagram: '@diegor', skin_tone: 'Médio Claro', notes: 'Clientão frequente, sempre pontual.' },
       { user_id: userId, name: 'Fernanda Lima', phone: '(11) 95432-1098', email: 'fer@email.com', instagram: '@fernandalima', skin_tone: 'Médio', notes: 'Coleção de flores no braço.' },
+      { user_id: userId, name: 'Gabriel Torres', phone: '(11) 94321-0987', email: 'gabriel@email.com', instagram: '@gabrielt', skin_tone: 'Claro', notes: 'Estilo old school, braço direito completo.' },
+      { user_id: userId, name: 'Helena Souza', phone: '(11) 93210-9876', email: 'hel@email.com', instagram: '@helenasouza', skin_tone: 'Médio Escuro', notes: 'Ama aquarela e mandala.' },
     ]).select();
 
     const clientIds = clients?.map(c => c.id) || [];
-
-    // Generate appointments across last 3 months + future
+    const services = ['Tatuagem Fineline', 'Tatuagem Realismo', 'Tatuagem Geométrica', 'Coverup', 'Touch-up', 'Lettering', 'Aquarela', 'Old School', 'Neo Traditional', 'Blackwork'];
     const now = new Date();
     const appointments = [];
 
-    // Past completed appointments (revenue data for charts)
-    const pastDates = [
-      -85, -80, -75, -72, -68, -65, -60, -58, -55, -52,
-      -48, -45, -42, -38, -35, -30, -28, -25, -22, -18,
-      -15, -12, -10, -8, -5, -3, -2
+    // Full year of past completed appointments (~60 sessions)
+    const pastDays = [
+      -355, -350, -345, -340, -335, -330, -325, -320, -315, -310,
+      -305, -300, -295, -290, -285, -280, -275, -270, -265, -260,
+      -255, -250, -245, -240, -235, -230, -225, -220, -215, -210,
+      -205, -200, -195, -190, -185, -180, -175, -170, -165, -160,
+      -155, -150, -145, -140, -135, -130, -125, -120, -115, -110,
+      -105, -100, -95, -90, -85, -80, -75, -70, -65, -60,
+      -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, -2
     ];
 
-    const services = ['Tatuagem Fineline', 'Tatuagem Realismo', 'Tatuagem Geométrica', 'Coverup', 'Touch-up', 'Lettering', 'Aquarela'];
+    // Prices that grow slightly over the year (simulating business growth)
+    const basePrices = [250, 300, 350, 400, 450, 500, 600, 700, 800, 1000, 1200, 1500];
 
-    for (const daysAgo of pastDates) {
+    for (let i = 0; i < pastDays.length; i++) {
+      const daysAgo = pastDays[i];
       const date = new Date(now);
       date.setDate(date.getDate() + daysAgo);
-      date.setHours(10 + Math.floor(Math.random() * 6), 0, 0, 0);
-      const price = [250, 350, 450, 600, 800, 1200][Math.floor(Math.random() * 6)];
+      date.setHours(9 + Math.floor(Math.random() * 7), 0, 0, 0);
+
+      // More recent = slightly higher prices (business growing)
+      const yearProgress = (pastDays.length - i) / pastDays.length;
+      const priceIndex = Math.floor(yearProgress * (basePrices.length - 1));
+      const price = basePrices[Math.max(0, basePrices.length - 1 - priceIndex)];
+
       appointments.push({
         user_id: userId,
-        client_id: clientIds[Math.floor(Math.random() * clientIds.length)],
+        client_id: clientIds[i % clientIds.length],
         start_at: date.toISOString(),
-        duration_min: [60, 90, 120, 180, 240][Math.floor(Math.random() * 5)],
+        duration_min: [60, 90, 120, 150, 180, 240][Math.floor(Math.random() * 6)],
         status: 'completed',
         service: services[Math.floor(Math.random() * services.length)],
         price_expected: price,
         price_final: price,
-        deposit: price * 0.3,
+        deposit: Math.round(price * 0.3),
       });
     }
 
-    // Today's appointments
-    const today = new Date(now);
-    today.setHours(10, 0, 0, 0);
+    // Today's appointments (2)
+    const today1 = new Date(now);
+    today1.setHours(10, 0, 0, 0);
     appointments.push({
-      user_id: userId,
-      client_id: clientIds[0],
-      start_at: today.toISOString(),
-      duration_min: 120,
-      status: 'confirmed',
-      service: 'Tatuagem Fineline',
-      price_expected: 450,
-      price_final: 0,
-      deposit: 150,
+      user_id: userId, client_id: clientIds[0],
+      start_at: today1.toISOString(), duration_min: 120,
+      status: 'confirmed', service: 'Tatuagem Fineline',
+      price_expected: 450, price_final: 0, deposit: 150,
     });
 
     const today2 = new Date(now);
     today2.setHours(14, 0, 0, 0);
     appointments.push({
-      user_id: userId,
-      client_id: clientIds[1],
-      start_at: today2.toISOString(),
-      duration_min: 180,
-      status: 'scheduled',
-      service: 'Tatuagem Realismo',
-      price_expected: 800,
-      price_final: 0,
-      deposit: 250,
+      user_id: userId, client_id: clientIds[1],
+      start_at: today2.toISOString(), duration_min: 180,
+      status: 'scheduled', service: 'Tatuagem Realismo',
+      price_expected: 800, price_final: 0, deposit: 250,
     });
 
-    // Future appointments
-    for (let i = 1; i <= 8; i++) {
+    // Future appointments (10)
+    for (let i = 1; i <= 10; i++) {
       const futureDate = new Date(now);
-      futureDate.setDate(futureDate.getDate() + i * 2);
-      futureDate.setHours(10 + Math.floor(Math.random() * 5), 0, 0, 0);
-      const price = [350, 500, 700, 1000][Math.floor(Math.random() * 4)];
+      futureDate.setDate(futureDate.getDate() + i * 3);
+      futureDate.setHours(10 + Math.floor(Math.random() * 6), 0, 0, 0);
+      const price = basePrices[Math.floor(Math.random() * basePrices.length)];
       appointments.push({
         user_id: userId,
-        client_id: clientIds[Math.floor(Math.random() * clientIds.length)],
+        client_id: clientIds[i % clientIds.length],
         start_at: futureDate.toISOString(),
         duration_min: [60, 120, 180][Math.floor(Math.random() * 3)],
         status: i % 3 === 0 ? 'confirmed' : 'scheduled',
         service: services[Math.floor(Math.random() * services.length)],
         price_expected: price,
         price_final: 0,
-        deposit: price * 0.3,
+        deposit: Math.round(price * 0.3),
       });
     }
 
@@ -167,47 +165,37 @@ Deno.serve(async (req) => {
       { user_id: userId, name: 'Tips Cartridge 7M', category: 'tips', unit: 'un', qty_current: 12, min_qty: 15, unit_cost: 8.0, supplier: 'Tattoo Supply BR' },
     ]);
 
-    // Insert demo expenses across last 3 months
-    const expenseDates = [-90, -75, -60, -55, -45, -30, -28, -20, -15, -10, -5, -2];
-    const expenseCategories = [
-      { category: 'materials', desc: 'Reposição de tintas e agulhas', amount: 320 },
-      { category: 'rent', desc: 'Aluguel do estúdio', amount: 1500 },
-      { category: 'marketing', desc: 'Anúncio Instagram Ads', amount: 200 },
-      { category: 'apps', desc: 'Assinatura Adobe Creative', amount: 99.90 },
-      { category: 'utilities', desc: 'Conta de luz', amount: 185 },
-      { category: 'materials', desc: 'Luvas e materiais descartáveis', amount: 150 },
-      { category: 'rent', desc: 'Aluguel do estúdio', amount: 1500 },
-      { category: 'marketing', desc: 'Cartões de visita', amount: 80 },
-      { category: 'utilities', desc: 'Internet', amount: 120 },
-      { category: 'materials', desc: 'Agulhas cartridge', amount: 240 },
-      { category: 'apps', desc: 'InkFlow Pro', amount: 59.90 },
-      { category: 'other', desc: 'Equipamento de esterilização', amount: 450 },
-    ];
+    // Full year of expenses — monthly recurring + sporadic
+    const expenses = [];
 
-    const expenses = expenseDates.map((daysAgo, i) => {
-      const date = new Date(now);
-      date.setDate(date.getDate() + daysAgo);
-      const exp = expenseCategories[i % expenseCategories.length];
-      return {
-        user_id: userId,
-        date: date.toISOString().split('T')[0],
-        amount: exp.amount,
-        category: exp.category,
-        description: exp.desc,
-        payment_method: ['pix', 'credit_card', 'debit_card'][Math.floor(Math.random() * 3)],
-        recurring: exp.category === 'rent' || exp.category === 'apps',
-      };
-    });
+    // 12 months of recurring expenses
+    for (let month = 11; month >= 0; month--) {
+      const base = new Date(now);
+      base.setMonth(base.getMonth() - month);
+      base.setDate(5);
+
+      expenses.push(
+        { user_id: userId, date: new Date(base.setDate(5)).toISOString().split('T')[0], amount: 1500, category: 'rent', description: 'Aluguel do estúdio', payment_method: 'pix', recurring: true },
+        { user_id: userId, date: new Date(base.setDate(10)).toISOString().split('T')[0], amount: 99.90, category: 'apps', description: 'Assinatura Adobe Creative', payment_method: 'credit_card', recurring: true },
+        { user_id: userId, date: new Date(base.setDate(12)).toISOString().split('T')[0], amount: 59.90, category: 'apps', description: 'InkFlow Pro', payment_method: 'credit_card', recurring: true },
+        { user_id: userId, date: new Date(base.setDate(15)).toISOString().split('T')[0], amount: 120 + Math.floor(Math.random() * 60), category: 'utilities', description: 'Internet e telefone', payment_method: 'debit_card', recurring: true },
+        { user_id: userId, date: new Date(base.setDate(20)).toISOString().split('T')[0], amount: 150 + Math.floor(Math.random() * 80), category: 'utilities', description: 'Conta de luz', payment_method: 'pix', recurring: false },
+      );
+
+      // Sporadic: materials every ~2 months
+      if (month % 2 === 0) {
+        expenses.push({ user_id: userId, date: new Date(base.setDate(8)).toISOString().split('T')[0], amount: 280 + Math.floor(Math.random() * 200), category: 'materials', description: 'Reposição tintas e agulhas', payment_method: 'pix', recurring: false });
+      }
+      // Marketing every 3 months
+      if (month % 3 === 0) {
+        expenses.push({ user_id: userId, date: new Date(base.setDate(25)).toISOString().split('T')[0], amount: 150 + Math.floor(Math.random() * 150), category: 'marketing', description: 'Instagram Ads / Portfólio', payment_method: 'credit_card', recurring: false });
+      }
+    }
 
     await supabaseAdmin.from('expenses').insert(expenses);
 
-    // Return credentials for sign-in
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        email: DEMO_EMAIL, 
-        password: DEMO_PASSWORD 
-      }),
+      JSON.stringify({ success: true, email: DEMO_EMAIL, password: DEMO_PASSWORD }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
