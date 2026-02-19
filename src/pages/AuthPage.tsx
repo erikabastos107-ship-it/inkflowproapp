@@ -3,12 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Mínimo 6 caracteres')
@@ -31,6 +32,26 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingDemo, setLoadingDemo] = useState(false);
+
+  const handleDemo = async () => {
+    setLoadingDemo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-demo-account');
+      if (error) throw error;
+      
+      const { email, password } = data;
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) throw signInError;
+
+      toast.success('Bem-vindo à conta demo! 🎨');
+      navigate('/app/dashboard');
+    } catch (err: any) {
+      toast.error('Erro ao entrar na conta demo: ' + err.message);
+    } finally {
+      setLoadingDemo(false);
+    }
+  };
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema)
   });
@@ -126,6 +147,26 @@ export default function AuthPage() {
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Entrando...' : 'Entrar'}
+              </Button>
+
+              <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border/50" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">ou</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                onClick={handleDemo}
+                disabled={loadingDemo}
+              >
+                <Sparkles className="h-4 w-4" />
+                {loadingDemo ? 'Carregando demo...' : 'Explorar conta demo'}
               </Button>
             </form> : <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
               <div className="space-y-2">
