@@ -49,13 +49,13 @@ export function Sidebar() {
       <div className="p-4 sm:p-6">
         <div className="flex items-center gap-3">
           <img src={logoImg} alt="InkFlow" className="h-8 w-auto object-contain" />
-          <span className="text-xl font-bold lg:hidden xl:inline text-primary">Inkflow PRO</span>
+          
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map(item => {
+        {navItems.map((item) => {
         const isActive = location.pathname === item.path;
         return <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} className={cn('flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200', isActive ? 'sidebar-icon-active' : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground')}>
               <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -102,7 +102,7 @@ export function Sidebar() {
       {/* Mobile bottom nav */}
       <nav className="lg:hidden bottom-nav z-50">
         <div className="flex items-center justify-around h-16">
-          {navItems.slice(0, 5).map(item => {
+          {navItems.slice(0, 5).map((item) => {
           const isActive = location.pathname === item.path;
           return <Link key={item.path} to={item.path} className={cn('flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors', isActive ? 'text-primary' : 'text-muted-foreground')}>
                 <item.icon className="h-5 w-5" />
